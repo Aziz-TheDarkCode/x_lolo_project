@@ -24,6 +24,13 @@ class Session {
     guestToken = (await getGuestToken(cookie));
   }
 
+  Session.fromExistingSession(Map<String, String> loadedData) {
+    guestToken = loadedData["guestToken"]!;
+    flowToken = loadedData["flowToken"]!;
+    xCsrfToken = loadedData["xCsrfToken"]!;
+    userID = loadedData["userID"]!;
+  }
+
   Future<void> login(
       String usernameOrEmail, String passWord, bool saveSession) async {
     final data = await getAuthFlows(cookie, guestToken);
@@ -37,17 +44,17 @@ class Session {
 }
 
 void main() async {
-  var a = await loadSession();
+  var a = await loadSession('session.yaml');
   for (var entry in a.entries) {
     await saveSession('${entry.key} : ${entry.value}');
   }
 }
 
-Future<Map<String, String>> loadSession() async {
-  var sessionData = <String, String>{};
+Future<Map<String, String>> loadSession(String source) async {
+  final sessionData = <String, String>{};
 
   try {
-    final rawContent = await File("session.yaml").readAsLines();
+    final rawContent = await File(source).readAsLines();
 
     for (var str in rawContent) {
       var splittedStr = str.split(':');
