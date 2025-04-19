@@ -3,6 +3,7 @@ import 'package:x_lolo/src/const/payload_and_headers.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 import 'dart:convert';
+import 'dart:io';
 
 class Cookie {
   final Map<String, String> dict;
@@ -32,6 +33,47 @@ class Session {
     await passNextLink(this);
     await submitUsername(this, usernameOrEmail);
     await submitPassword(this, passWord);
+  }
+}
+
+void main() async {
+  var a = await loadSession();
+  for (var entry in a.entries) {
+    await saveSession('${entry.key} : ${entry.value}');
+  }
+}
+
+Future<Map<String, String>> loadSession() async {
+  var sessionData = <String, String>{};
+
+  try {
+    final rawContent = await File("session.yaml").readAsLines();
+
+    for (var str in rawContent) {
+      var splittedStr = str.split(':');
+      String key = splittedStr[0].trim();
+      String value = splittedStr[1];
+      sessionData[key] = value;
+    }
+    return sessionData;
+  } catch (e) {
+    throw Exception(
+        'Cannot extract data from the the file ERROR : ${e.toString()}');
+  }
+}
+
+Future<void> saveSession(String message) async {
+  try {
+    final sessionFile = File('session.yaml');
+
+    final sink = sessionFile.openWrite(mode: FileMode.append);
+
+    sink.write('\n$message');
+
+    await sink.flush();
+    await sink.close();
+  } catch (e) {
+    print('Error writing to log file: $e');
   }
 }
 
